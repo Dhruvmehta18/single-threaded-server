@@ -69,9 +69,24 @@ pub(crate) async fn handle_connection() -> Result<(), Box<dyn std::error::Error 
     }
 }
 
+pub fn get_env_variable(key: &str, default: i32) -> i32 {
+    match std::env::var(key) {
+        core::result::Result::Ok(val) => val.parse::<i32>().unwrap(),
+        core::result::Result::Err(_) => default,
+    }
+}
+
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    let base_port: i32 = get_env_variable("PORT_BASE", 7777);
+    let node_app_instance = get_env_variable("NODE_APP_INSTANCE", 0);
+    let port = base_port + node_app_instance + 1;
+    println!("PORT_BASE: {}", base_port);
+    println!("NODE_APP_INSTANCE: {}", get_env_variable("NODE_APP_INSTANCE", 0));
+    println!("PORT: {}", port);
+    std::env::set_var("PORT", port.to_string());
     return handle_connection().await;
 }
